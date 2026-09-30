@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import COAttainment from './COAttainment.jsx';
 
 const API_BASE = 'http://localhost:5001/api';
 
@@ -14,6 +15,7 @@ export default function App() {
   const [department, setDepartment] = useState('Computer Engineering');
   
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [isAttainmentDemo, setIsAttainmentDemo] = useState(false);
   const [uploads, setUploads] = useState([]);
   const [activeUploadId, setActiveUploadId] = useState('');
   const [stats, setStats] = useState({
@@ -255,7 +257,7 @@ export default function App() {
     s.seat_no.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  if (!token) {
+  if (!token && !isAttainmentDemo) {
     return (
       <div className="auth-shell">
         <div className="bg-decor decoration-blue-1"></div>
@@ -348,13 +350,25 @@ export default function App() {
               </button>
             </p>
           </form>
+          <button
+            type="button"
+            className="btn btn-secondary demo-entry"
+            onClick={() => {
+              setActiveTab('attainment');
+              setIsAttainmentDemo(true);
+              setSuccessMessage('');
+              setErrorMessage('');
+            }}
+          >
+            Open CO Attainment demo
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${activeTab === 'attainment' ? 'attainment-shell' : ''}`}>
       <div className="bg-decor decoration-blue-1"></div>
       <div className="bg-decor decoration-blue-2"></div>
 
@@ -368,7 +382,7 @@ export default function App() {
           <span>GradeXpert</span>
         </div>
 
-        {user && (
+        {token && user && (
           <div className="user-profile">
             <div className="user-avatar">{(user.name || user.username || '?').charAt(0).toUpperCase()}</div>
             <div className="user-info">
@@ -380,25 +394,39 @@ export default function App() {
         )}
 
         <nav className="nav-menu">
-          <button className={activeTab === 'dashboard' ? 'active' : ''} onClick={() => setActiveTab('dashboard')}>
-            📊 Dashboard
-          </button>
-          <button className={activeTab === 'upload' ? 'active' : ''} onClick={() => setActiveTab('upload')}>
-            📤 Upload Ledger
-          </button>
-          <button className={activeTab === 'merit' ? 'active' : ''} onClick={() => setActiveTab('merit')}>
-            🏆 Merit List
-          </button>
-          <button className={activeTab === 'failed' ? 'active' : ''} onClick={() => setActiveTab('failed')}>
-            ❌ Failed Students
-          </button>
-          <button className={activeTab === 'history' ? 'active' : ''} onClick={() => setActiveTab('history')}>
-            📂 History Logs
+          {token && <>
+            <button className={activeTab === 'dashboard' ? 'active' : ''} onClick={() => setActiveTab('dashboard')}>
+              📊 Dashboard
+            </button>
+            <button className={activeTab === 'upload' ? 'active' : ''} onClick={() => setActiveTab('upload')}>
+              📤 Upload Ledger
+            </button>
+            <button className={activeTab === 'merit' ? 'active' : ''} onClick={() => setActiveTab('merit')}>
+              🏆 Merit List
+            </button>
+            <button className={activeTab === 'failed' ? 'active' : ''} onClick={() => setActiveTab('failed')}>
+              ❌ Failed Students
+            </button>
+            <button className={activeTab === 'history' ? 'active' : ''} onClick={() => setActiveTab('history')}>
+              📂 History Logs
+            </button>
+          </>}
+          <button className={activeTab === 'attainment' ? 'active' : ''} onClick={() => setActiveTab('attainment')}>
+            ▦ CO Attainment
           </button>
         </nav>
 
-        <button onClick={handleLogout} className="btn-logout">
-          🚪 Sign Out
+        <button
+          onClick={() => {
+            if (token) handleLogout();
+            else {
+              setIsAttainmentDemo(false);
+              setActiveTab('dashboard');
+            }
+          }}
+          className="btn-logout"
+        >
+          {token ? '🚪 Sign Out' : 'Exit Demo'}
         </button>
       </aside>
 
@@ -406,8 +434,8 @@ export default function App() {
       <main className="workspace">
         <header className="workspace-header">
           <div className="workspace-title">
-            <h1>Student Performance Dashboard</h1>
-            <p>Pune Institute of Computer Technology (PICT)</p>
+            <h1>{activeTab === 'attainment' ? 'CO Attainment' : 'Student Performance Dashboard'}</h1>
+            <p>{activeTab === 'attainment' ? 'Internal Assessment and Term Work' : 'Pune Institute of Computer Technology (PICT)'}</p>
           </div>
           
           {uploads.length > 0 && (
@@ -714,6 +742,10 @@ export default function App() {
               </div>
             </div>
           </div>
+        )}
+
+        {activeTab === 'attainment' && (
+          <COAttainment isDemo={!token} />
         )}
       </main>
     </div>
